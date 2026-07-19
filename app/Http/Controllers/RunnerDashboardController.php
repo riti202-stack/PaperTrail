@@ -62,4 +62,25 @@ class RunnerDashboardController extends Controller
         $count = auth()->user()->runner->documentRequests()->where('status', 'assigned')->count();
         return response()->json(['count' => $count]);
     }
+
+
+    public function declineTask(DocumentRequest $documentRequest)
+{
+    abort_unless($documentRequest->runner_id === auth()->user()->runner->id, 403);
+    abort_unless($documentRequest->status === 'assigned', 400);
+
+    $runner = $documentRequest->runner;
+
+    $documentRequest->update([
+        'runner_id' => null,
+        'status' => 'approved',
+        'assigned_at' => null,
+    ]);
+    $documentRequest->statusHistory()->create(['status' => 'approved']);
+
+    $runner->update(['is_available' => true]);
+
+    return back()->with('success', 'Task declined. Sent back for reassignment.');
 }
+}
+

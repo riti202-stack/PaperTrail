@@ -1,44 +1,53 @@
+
+
+
 @extends('layouts.app')
 
 @section('content')
 <div class="max-w-3xl mx-auto px-6">
-    <div class="flex items-baseline justify-between mb-6 pb-4 border-b-2 border-ink/10">
+    <div class="flex items-baseline justify-between mb-8 pb-4 border-b-2 border-ink/10">
         <div>
             <h2 class="font-display text-2xl text-ink">My requests</h2>
             <p class="text-envelope text-sm mt-0.5">Document courier requests you've submitted</p>
         </div>
-        <a href="{{ route('requester.create') }}" class="bg-ink text-white px-4 py-2 rounded text-sm hover:bg-ink/90 transition">
+        <a href="{{ route('requester.create') }}" class="bg-ink text-white px-4 py-2 rounded text-sm hover:bg-ink/90 transition shadow-sm">
             + New request
         </a>
     </div>
 
     @if ($requests->isEmpty())
-        <div class="text-center py-16">
+        <div class="text-center py-20">
             <div class="w-12 h-12 rounded-full border-2 border-brass mx-auto mb-3 flex items-center justify-center text-brass">✎</div>
             <p class="text-envelope">You haven't made any requests yet.</p>
         </div>
     @else
-        <div class="space-y-3">
+        <div class="space-y-4">
             @foreach ($requests as $request)
-                <a href="{{ route('requester.track', $request) }}" class="block bg-white border border-ink/10 rounded-lg p-4 hover:border-ink/30 transition">
-                    <div class="flex justify-between items-center">
-                        <div class="flex gap-4 items-center">
-                            <span class="font-mono text-xs text-envelope">#PT-{{ str_pad($request->id, 6, '0', STR_PAD_LEFT) }}</span>
-                            <div>
-                                <p class="font-medium text-ink">{{ $request->document_type }}</p>
-                                <p class="text-sm text-envelope">{{ $request->delivery_address }}</p>
-                            </div>
+                @php
+                    $statusColor = match(true) {
+                        $request->status === 'rejected' => 'stamp',
+                        $request->status === 'delivered' => 'seal',
+                        in_array($request->status, ['assigned','accepted','picked_up','in_transit']) => 'brass',
+                        default => 'envelope',
+                    };
+                @endphp
+                <a href="{{ route('requester.track', $request) }}"
+                   class="group flex bg-white rounded-xl border border-ink/10 shadow-sm hover:shadow-md transition overflow-hidden">
+                    <div class="w-1.5 bg-{{ $statusColor }}"></div>
+
+                    <div class="flex-1 flex justify-between items-center p-5">
+                        <div>
+                            <p class="font-mono text-[11px] text-envelope tracking-wide">#PT-{{ str_pad($request->id, 6, '0', STR_PAD_LEFT) }}</p>
+                            <p class="font-display text-lg text-ink mt-0.5">{{ $request->document_type }}</p>
+                            <p class="text-sm text-envelope mt-0.5">{{ $request->delivery_address }}</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-medium px-2.5 py-1 rounded-full
-                                @if($request->status === 'rejected') bg-stamp/10 text-stamp
-                                @elseif($request->status === 'delivered') bg-seal/10 text-seal
-                                @elseif(in_array($request->status, ['assigned','accepted','picked_up','in_transit'])) bg-brass/10 text-brass
-                                @else bg-envelope/10 text-envelope @endif">
-                                {{ ucfirst(str_replace('_', ' ', $request->status)) }}
-                            </span>
-                            <span class="text-envelope">→</span>
-                        </div>
+                        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-{{ $statusColor }}/10 text-{{ $statusColor }}">
+                            {{ ucfirst(str_replace('_', ' ', $request->status)) }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center px-5" style="border-left: 1.5px dashed #14213D22;">
+                        <span class="text-envelope group-hover:text-ink group-hover:translate-x-0.5 transition">→</span>
                     </div>
                 </a>
             @endforeach

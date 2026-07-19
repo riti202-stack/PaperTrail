@@ -7,7 +7,12 @@ class DocumentRequest extends Model
 {
     protected $fillable = [
         'requester_id', 'runner_id', 'zone_id', 'document_type',
-        'pickup_location', 'delivery_address', 'status', 'assigned_at'
+        'pickup_location', 'delivery_address', 'status', 'assigned_at',
+        'archived_at', 'delivery_lat', 'delivery_lng'
+    ];
+
+    protected $casts = [
+        'archived_at' => 'datetime',
     ];
 
     public function requester()
